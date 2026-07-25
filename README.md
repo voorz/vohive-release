@@ -18,6 +18,12 @@ One-line installation and lifecycle management for VoHive — a high-performance
 - `curl` or `wget`
 - `root` or `sudo` privileges
 
+If `curl` / `wget` is not installed:
+
+```bash
+apt update && apt install -y curl
+```
+
 ## Quick Start
 
 ### Install

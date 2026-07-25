@@ -18,6 +18,12 @@ VoHive 一键安装与生命周期管理工具。VoHive 是一个高性能的 Vo
 - `curl` 或 `wget`
 - `root` 或 `sudo` 权限
 
+如未安装 `curl` / `wget`：
+
+```bash
+apt update && apt install -y curl
+```
+
 ## 快速开始
 
 ### 安装
