@@ -22,6 +22,8 @@ VoHive 一键安装与生命周期管理工具。VoHive 是一个高性能的 Vo
 
 ### 安装
 
+安装最新稳定版：
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/voorz/vohive-release/master/install.sh | bash
 ```
@@ -30,6 +32,12 @@ curl -fsSL https://raw.githubusercontent.com/voorz/vohive-release/master/install
 
 ```bash
 wget -O - https://raw.githubusercontent.com/voorz/vohive-release/master/install.sh | sh
+```
+
+指定版本安装：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/voorz/vohive-release/master/install.sh | bash -s -- --version v1.5.5
 ```
 
 安装完成后，在浏览器中打开 `http://<设备IP>:7575`。

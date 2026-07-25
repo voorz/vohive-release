@@ -22,6 +22,8 @@ One-line installation and lifecycle management for VoHive — a high-performance
 
 ### Install
 
+Install the latest stable release:
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/voorz/vohive-release/master/install.sh | bash
 ```
@@ -30,6 +32,12 @@ or
 
 ```bash
 wget -O - https://raw.githubusercontent.com/voorz/vohive-release/master/install.sh | sh
+```
+
+Install a specific version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/voorz/vohive-release/master/install.sh | bash -s -- --version v1.5.5
 ```
 
 After installation, open `http://<host-ip>:7575` in your browser.
