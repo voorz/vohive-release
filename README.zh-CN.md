@@ -1,10 +1,14 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v1.5.3-green.svg)](https://github.com/voorz/vohive-release/releases)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20OpenWrt-lightgrey.svg)]()
+<p align="center">
+  <a href="https://github.com/voorz/vohive-release/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://github.com/voorz/vohive-release/releases"><img src="https://img.shields.io/badge/version-v1.5.3-green.svg" alt="Version"></a>
+  <img src="https://img.shields.io/badge/platform-Linux%20%7C%20OpenWrt-lightgrey.svg" alt="Platform">
+</p>
 
-[English](README.md) | 中文
+<p align="center">
+  <b>中文</b> | <a href="README.md">English</a>
+</p>
 
-# VoHive Release
+<h1 align="center">VoHive Release</h1>
 
 VoHive 一键安装与生命周期管理工具。VoHive 是一个高性能的 VoWiFi 信令代理。
 
