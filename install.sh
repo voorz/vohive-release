@@ -7,6 +7,11 @@ VERSION=""
 NO_SYSTEMD=0
 DRY_RUN=0
 FORCE=0
+NON_INTERACTIVE=0
+
+PORT="${VOHIVE_PORT:-}"
+WEB_USERNAME="${VOHIVE_USERNAME:-}"
+WEB_PASSWORD="${VOHIVE_PASSWORD:-}"
 
 ROOT_DIR="${VOHIVE_INSTALL_ROOT:-/opt/vohive}"
 INSTALL_DIR="${ROOT_DIR}/bin"
@@ -33,10 +38,79 @@ usage() {
 用法: install.sh [选项]
   --version <vX.Y.Z|latest|stable>
   --channel <stable|latest>
+  --port <端口>            Web 服务端口（默认 7575）
+  --username <用户名>      Web 登录用户名（默认 admin）
+  --password <密码>        Web 登录密码（默认 admin）
+  --non-interactive        无人值守模式：不提问，全部用默认值/环境变量
   --no-systemd
   --dry-run
   --force
+
+环境变量:
+  VOHIVE_PORT, VOHIVE_USERNAME, VOHIVE_PASSWORD
+  与命令行参数等效，优先级低于命令行参数。
 USAGE
+}
+
+# 交互式提问：prompt_with_default "提示" "默认值" -> 输出结果
+# 非 TTY 或 --non-interactive 时直接返回默认值
+prompt_with_default() {
+  prompt="$1"
+  default="$2"
+  if [ "${NON_INTERACTIVE}" = "1" ] || [ ! -t 0 ]; then
+    printf '%s\n' "${default}"
+    return 0
+  fi
+  printf '%s [%s]: ' "${prompt}" "${default}" >&2
+  IFS= read -r answer || answer=""
+  if [ -z "${answer}" ]; then
+    printf '%s\n' "${default}"
+  else
+    printf '%s\n' "${answer}"
+  fi
+}
+
+# 交互式密码提问（不回显）：prompt_password "提示" "默认值" -> 输出结果
+prompt_password() {
+  prompt="$1"
+  default="$2"
+  if [ "${NON_INTERACTIVE}" = "1" ] || [ ! -t 0 ]; then
+    printf '%s\n' "${default}"
+    return 0
+  fi
+  printf '%s [默认: %s]: ' "${prompt}" "${default}" >&2
+  stty -echo 2>/dev/null || true
+  IFS= read -r answer || answer=""
+  stty echo 2>/dev/null || true
+  printf '\n' >&2
+  if [ -z "${answer}" ]; then
+    printf '%s\n' "${default}"
+  else
+    printf '%s\n' "${answer}"
+  fi
+}
+
+resolve_deploy_config() {
+  if [ -z "${PORT}" ]; then
+    PORT="$(prompt_with_default "Web 服务端口" "7575")"
+  fi
+  if [ -z "${WEB_USERNAME}" ]; then
+    WEB_USERNAME="$(prompt_with_default "Web 登录用户名" "admin")"
+  fi
+  if [ -z "${WEB_PASSWORD}" ]; then
+    WEB_PASSWORD="$(prompt_password "Web 登录密码" "admin")"
+  fi
+  # 端口合法性校验
+  case "${PORT}" in
+    ''|*[!0-9]*)
+      err "端口必须是数字: ${PORT}"
+      exit 1
+      ;;
+  esac
+  if [ "${PORT}" -lt 1 ] || [ "${PORT}" -gt 65535 ]; then
+    err "端口超出范围 (1-65535): ${PORT}"
+    exit 1
+  fi
 }
 
 run_root() {
@@ -146,6 +220,37 @@ parse_args() {
         NO_SYSTEMD=1
         shift
         ;;
+      --non-interactive)
+        NON_INTERACTIVE=1
+        shift
+        ;;
+      --port)
+        if [ "$#" -lt 2 ]; then
+          err "--port 缺少参数"
+          usage
+          exit 1
+        fi
+        PORT="$2"
+        shift 2
+        ;;
+      --username)
+        if [ "$#" -lt 2 ]; then
+          err "--username 缺少参数"
+          usage
+          exit 1
+        fi
+        WEB_USERNAME="$2"
+        shift 2
+        ;;
+      --password)
+        if [ "$#" -lt 2 ]; then
+          err "--password 缺少参数"
+          usage
+          exit 1
+        fi
+        WEB_PASSWORD="$2"
+        shift 2
+        ;;
       --dry-run)
         DRY_RUN=1
         shift
@@ -201,13 +306,13 @@ install_default_config() {
     return 0
   fi
   if [ ! -f "${CONFIG_DIR}/config.yaml" ] || [ "${FORCE}" = "1" ]; then
-    run_root sh -c "cat >\"${CONFIG_DIR}/config.yaml\"" <<'CFG'
+    run_root sh -c "cat >\"${CONFIG_DIR}/config.yaml\"" <<CFG
 server:
-  port: ":7575"
+  port: ":${PORT}"
 
 web:
-  username: "admin"
-  password: "admin"
+  username: "${WEB_USERNAME}"
+  password: "${WEB_PASSWORD}"
 CFG
   fi
 }
@@ -289,9 +394,9 @@ collect_ips() {
 }
 
 print_access_info() {
-  port="7575"
+  port="${PORT}"
   log "最小配置已生成: ${CONFIG_DIR}/config.yaml"
-  log "默认 Web 账号密码: admin / admin"
+  log "Web 登录账号: ${WEB_USERNAME}"
   log "一键访问链接: http://127.0.0.1:${port}"
   for ip in $(collect_ips); do
     case "$ip" in
@@ -305,6 +410,7 @@ print_access_info() {
 
 main() {
   parse_args "$@"
+  resolve_deploy_config
 
   need_cmd uname
   need_cmd mktemp
