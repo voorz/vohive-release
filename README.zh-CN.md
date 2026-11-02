@@ -61,7 +61,15 @@ systemctl status vohive
 
 # OpenWrt
 /etc/init.d/vohive status
+
+# 通用环境（Alpine/proot/容器等无 systemd 的环境）
+/opt/vohive/start.sh
 ```
+
+> **注意**：在没有 systemd 或 OpenWrt procd 的环境（如 Alpine 容器、Podroid/proot 等），
+> 安装脚本会安装 `/opt/vohive/start.sh` 启动脚本。
+> 请勿直接运行 `./bin/vohive`，因为 vohive 使用相对路径访问 `data/` 目录，
+> 必须以 `/opt/vohive` 为工作目录启动，否则数据库初始化会失败。
 
 ### 查看日志
 
@@ -71,6 +79,9 @@ journalctl -u vohive -f
 
 # OpenWrt
 logread -f
+
+# 通用环境
+ tail -f /opt/vohive/logs/app.log
 ```
 
 ## 升级
@@ -146,7 +157,8 @@ curl -fsSL https://raw.githubusercontent.com/voorz/vohive-release/master/uninsta
 ├── config/
 │   └── config.yaml         # 配置文件
 ├── data/                   # 运行时数据
-└── logs/                   # 日志文件
+├── logs/                   # 日志文件
+└── start.sh                # 通用启动脚本（无 systemd/openwrt 时安装）
 ```
 
 ## 项目结构
@@ -158,6 +170,8 @@ curl -fsSL https://raw.githubusercontent.com/voorz/vohive-release/master/uninsta
 ├── versions.json           # 版本元数据
 ├── systemd/
 │   └── vohive.service      # systemd 服务模板
+├── none/
+│   └── start.sh            # 通用启动脚本（无 systemd/openwrt）
 └── tests/
     └── installer_compat_test.sh
 ```

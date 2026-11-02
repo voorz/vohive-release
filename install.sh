@@ -443,6 +443,11 @@ main() {
     exit 1
   fi
 
+  # 下载通用启动脚本（用于无 systemd/openwrt 的平台）
+  start_sh_url="https://raw.githubusercontent.com/${REPO}/master/none/start.sh"
+  start_sh_tmp="${TMP_DIR}/start.sh"
+  download_to "${start_sh_url}" "${start_sh_tmp}" || true
+
   if [ -x "${BIN_PATH}" ]; then
     log "检测到已安装版本，备份到: ${BACKUP_PATH}"
     run_root cp -f "${BIN_PATH}" "${BACKUP_PATH}"
@@ -486,6 +491,11 @@ main() {
         ;;
       none)
         log "未检测到 systemd 或 OpenWrt procd，跳过服务注册"
+        # 安装通用启动脚本，确保 WorkingDirectory 正确
+        # vohive 使用相对路径 data/vohive.db，必须从 ROOT_DIR 启动
+        if [ -f "${TMP_DIR}/start.sh" ]; then
+          run_root install -m 0755 "${TMP_DIR}/start.sh" "${ROOT_DIR}/start.sh"
+        fi
         ;;
       *)
         err "未知平台: ${ACTIVE_PLATFORM}"
@@ -509,7 +519,8 @@ main() {
         ;;
     esac
   else
-    log "手动启动命令: ${BIN_PATH} -c ${CONFIG_DIR}/config.yaml"
+    log "手动启动命令: cd ${ROOT_DIR} && ./bin/vohive -c config/config.yaml"
+    log "或直接使用启动脚本: ${ROOT_DIR}/start.sh"
   fi
   print_access_info
 }

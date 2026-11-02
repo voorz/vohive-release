@@ -61,7 +61,16 @@ systemctl status vohive
 
 # OpenWrt
 /etc/init.d/vohive status
+
+# Generic (Alpine/proot/containers without systemd)
+/opt/vohive/start.sh
 ```
+
+> **Note**: On systems without systemd or OpenWrt procd (e.g. Alpine containers, Podroid/proot),
+> the installer installs `/opt/vohive/start.sh` launch script.
+> Do not run `./bin/vohive` directly — vohive uses relative paths to access `data/`,
+> so it must be started with `/opt/vohive` as the working directory, otherwise database
+> initialization will fail with `SQLITE_CANTOPEN`.
 
 ### View Logs
 
@@ -71,6 +80,9 @@ journalctl -u vohive -f
 
 # OpenWrt
 logread -f
+
+# Generic
+ tail -f /opt/vohive/logs/app.log
 ```
 
 ## Upgrade
@@ -146,7 +158,8 @@ curl -fsSL https://raw.githubusercontent.com/voorz/vohive-release/master/uninsta
 ├── config/
 │   └── config.yaml         # Configuration file
 ├── data/                   # Runtime data
-└── logs/                   # Log files
+├── logs/                   # Log files
+└── start.sh                # Launch script (installed when no systemd/openwrt)
 ```
 
 ## Project Structure
@@ -158,6 +171,8 @@ curl -fsSL https://raw.githubusercontent.com/voorz/vohive-release/master/uninsta
 ├── versions.json           # Version metadata
 ├── systemd/
 │   └── vohive.service      # systemd unit template
+├── none/
+│   └── start.sh            # Generic launch script (no systemd/openwrt)
 └── tests/
     └── installer_compat_test.sh
 ```
