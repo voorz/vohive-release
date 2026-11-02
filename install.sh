@@ -496,6 +496,14 @@ main() {
         if [ -f "${TMP_DIR}/start.sh" ]; then
           run_root install -m 0755 "${TMP_DIR}/start.sh" "${ROOT_DIR}/start.sh"
         fi
+        # 直接启动 vohive
+        run_root sh -c "cd '${ROOT_DIR}' && nohup '${ROOT_DIR}/bin/vohive' -c '${ROOT_DIR}/config/config.yaml' > '${ROOT_DIR}/logs/vohive.log' 2>&1 &"
+        sleep 1
+        if run_root sh -c "pgrep -x vohive >/dev/null 2>&1"; then
+          service_registered=1
+        else
+          err "vohive 启动失败，请手动执行: ${ROOT_DIR}/start.sh"
+        fi
         ;;
       *)
         err "未知平台: ${ACTIVE_PLATFORM}"
@@ -509,15 +517,18 @@ main() {
   rollback_needed=0
   log "安装完成: ${BIN_PATH} (${resolved_version})"
 
-  if [ "${service_registered}" = "1" ]; then
-    case "${ACTIVE_PLATFORM}" in
-      openwrt)
-        log "服务状态: 运行中（OpenWrt procd）"
-        ;;
-      systemd)
-        log "服务状态: 运行中（systemd）"
-        ;;
-    esac
+    if [ "${service_registered}" = "1" ]; then
+      case "${ACTIVE_PLATFORM}" in
+        openwrt)
+          log "服务状态: 运行中（OpenWrt procd）"
+          ;;
+        systemd)
+          log "服务状态: 运行中（systemd）"
+          ;;
+        none)
+          log "服务状态: 运行中（直接启动）"
+          ;;
+      esac
   else
     log "手动启动命令: cd ${ROOT_DIR} && ./bin/vohive -c config/config.yaml"
     log "或直接使用启动脚本: ${ROOT_DIR}/start.sh"
